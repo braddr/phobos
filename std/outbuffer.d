@@ -53,6 +53,11 @@ class OutBuffer
     }
 
     /*********************************
+     * Clear the contents of the Outbuffer
+     */
+    void reset() { data.length = 0; offset = 0; }
+
+    /*********************************
      * Convert to array of bytes.
      */
 
