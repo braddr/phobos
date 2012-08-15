@@ -8,7 +8,6 @@ import std.outbuffer;
 import std.utf;
 import std.d.keywords;
 import std.d.identifier;
-import std.d.stringtable;
 
 enum TOK
 {
@@ -328,9 +327,12 @@ struct Token
 }
 
 
-void init_keywords()
+void init_tokens()
 {
-    add_keywords_to_token();
+    foreach_keyword((ref const Keyword k)
+    {
+        Token.tochars[k.value] = k.name;
+    });
 
     Token.tochars[TOK.TOKeof]              = "EOF";
     Token.tochars[TOK.TOKlcurly]           = "{";

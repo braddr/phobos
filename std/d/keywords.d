@@ -1,7 +1,5 @@
 module std.d.keywords;
 
-import std.d.identifier;
-import std.d.stringtable;
 import std.d.token;
 
 bool isKeyword(const ref Token t)
@@ -12,6 +10,12 @@ bool isKeyword(const ref Token t)
             return true;
     }
     return false;
+}
+
+void foreach_keyword(void delegate(ref const Keyword k) dg)
+{
+    foreach (ref k; keywords())
+        dg(k);
 }
 
 struct Keyword
@@ -149,23 +153,5 @@ Keyword[] keywords()
     ];
 
     return keywords;
-}
-
-void foreach_keyword(void delegate(ref const Keyword k) dg)
-{
-    foreach (ref k; keywords())
-        dg(k);
-}
-
-void add_keywords_to_token()
-{
-    //import core.stdc.stdio : printf;
-    //printf("add_keywords_to_token\n");
-
-    foreach (ref k; keywords())
-    {
-        //printf("tochars[%d] = '%s'\n", k.value, k.name);
-        Token.tochars[k.value] = k.name;
-    }
 }
 

@@ -31,16 +31,13 @@ static this()
     Lexer.stringbuffer = new OutBuffer;
     Lexer.stringtable.init(6151);
     init_charmap();
-    init_keywords();
+    init_tokens();
 
     foreach_keyword((ref const Keyword k)
     {
         const char *s = k.name;
-        TOK v = k.value;
         StringValue *sv = Lexer.stringtable.insert(s, cast(uint)strlen(s));
-        sv.ptrvalue = cast(void *) new Identifier(sv.toDchars(),v);
-
-        Token.tochars[v] = s;
+        sv.ptrvalue = cast(void *) new Identifier(sv.toDchars(), k.value);
     });
 }
 
