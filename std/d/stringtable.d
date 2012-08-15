@@ -15,12 +15,13 @@ struct StringValue
         char *str;
     };
 private:
-    uint length;
+    uint length_;
 
-    char lstring[0];
+    immutable(char) lstring[0];
 
 public:
-    uint len() const { return length; }
+    uint len() const { return length_; }
+    string toString() const { return (cast(immutable(char)*)&lstring)[0 .. length_]; }
     const char *toDchars() const { return cast(char*)&lstring; }
 
 private:
@@ -29,10 +30,10 @@ private:
     // This is more like a placement new c'tor
     void alloc(const char *p, uint l)
     {
-        length = l;
+        length_ = l;
         char* ptr = cast(char*)&lstring;
         ptr[l] = 0;
-        memcpy(ptr, p, length * char.sizeof);
+        memcpy(ptr, p, length_ * char.sizeof);
     }
 }
 
@@ -128,6 +129,11 @@ private:
         //printf("\treturn %p, %p\n",se, (*se));
         return se;
     }
+}
+
+hash_t calcHash(string str)
+{
+    return calcHash(str.ptr, str.length);
 }
 
 hash_t calcHash(const(char)* str, size_t len)

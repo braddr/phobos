@@ -37,7 +37,7 @@ static this()
     {
         const char *s = k.name;
         StringValue *sv = Lexer.stringtable.insert(s, cast(uint)strlen(s));
-        sv.ptrvalue = cast(void *) new Identifier(sv.toDchars(), k.value);
+        sv.ptrvalue = cast(void *) new Identifier(sv.toString(), k.value);
     });
 }
 
@@ -152,7 +152,7 @@ struct Lexer
         Identifier *id = cast(Identifier *) sv.ptrvalue;
         if (!id)
         {
-            id = new Identifier(sv.toDchars(), TOK.TOKidentifier);
+            id = new Identifier(sv.toString(), TOK.TOKidentifier);
             sv.ptrvalue = id;
         }
         return id;
@@ -369,7 +369,7 @@ struct Lexer
                     StringValue *sv = stringtable.update(cast(const(char*))t.ptr, cast(uint)(p - t.ptr));
                     Identifier *id = cast(Identifier *) sv.ptrvalue;
                     if (!id)
-                    {   id = new Identifier(sv.toDchars(), TOK.TOKidentifier);
+                    {   id = new Identifier(sv.toString(), TOK.TOKidentifier);
                         sv.ptrvalue = id;
                     }
                     t.ident = id;

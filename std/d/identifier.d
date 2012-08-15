@@ -8,106 +8,52 @@ import std.d.lexer;
 
 import std.outbuffer;
 
-enum DYNCAST
-{
-    DYNCAST_OBJECT,
-    DYNCAST_EXPRESSION,
-    DYNCAST_DSYMBOL,
-    DYNCAST_TYPE,
-    DYNCAST_IDENTIFIER,
-    DYNCAST_TUPLE,
-}
-
+// NOTE: the code expects there to be a \0 after the defined string's range
 struct Identifier
 {
     int value;
-    const char *str;
-    uint len;
+    string str;
 
-    this(const char *s, int v)
+    this(string s, int v)
     {
-        //printf("Identifier('%s', %d)\n", s, v);
+        //printf("Identifier('%.*s', %d)\n", s.length, s.ptr, v);
         str = s;
         value = v;
-        len = cast(uint)strlen(s);
+    }
+
+    this(immutable(char) *s, int v)
+    {
+        this(s[0 .. strlen(s)], v);
     }
 
     int equals(Identifier *o)
     {
-        return &this == o || memcmp(str, o.toChars(), len+1) == 0;
+        return &this == o || memcmp(str.ptr, o.toChars(), str.length+1) == 0;
     }
 
     hash_t hashCode()
     {
-        return calcHash(str, len);
+        return calcHash(str);
     }
 
     int compare(Identifier *o)
     {
-        return memcmp(str, o.toChars(), len + 1);
+        return memcmp(str.ptr, o.toChars(), str.length + 1);
     }
 
     void print()
     {
-        fprintf(stdout, "%s", str);
+        fprintf(stdout, "%.*s", str.length, str.ptr);
+    }
+
+    string toString()
+    {
+        return str;
     }
 
     char *toChars()
     {
         return cast(char*)str;
-    }
-
-    //char *toHChars();
-    const(char)* toHChars2()
-    {
-        const(char)* p = null;
-
-        if (&this == Id.ctor) p = "this".ptr;
-        else if (&this == Id.dtor) p = "~this".ptr;
-        else if (&this == Id.classInvariant) p = "invariant".ptr;
-        else if (&this == Id.unitTest) p = "unittest".ptr;
-        else if (&this == Id.dollar) p = "$".ptr;
-        else if (&this == Id.withSym) p = "with".ptr;
-        else if (&this == Id.result) p = "result".ptr;
-        else if (&this == Id.returnLabel) p = "return".ptr;
-        else
-        {   p = toChars();
-            if (*p == '_')
-            {
-                if (memcmp(p, "_staticCtor".ptr, 11) == 0)
-                    p = "static this".ptr;
-                else if (memcmp(p, "_staticDtor".ptr, 11) == 0)
-                    p = "static ~this".ptr;
-            }
-        }
-
-        return p;
-    }
-
-    int dyncast()
-    {
-        return DYNCAST.DYNCAST_IDENTIFIER;
-    }
-
-    // BUG: these are redundant with Lexer.uniqueId()
-    static Identifier *generateId(const char *prefix)
-    {
-        static size_t i;
-
-        return generateId(prefix, ++i);
-    }
-
-    static Identifier *generateId(const char *prefix, size_t i)
-    {
-        OutBuffer buf = new OutBuffer();
-        scope(exit) delete buf;
-
-        buf.write(prefix[0 .. strlen(prefix)]);
-        buf.printf("%llu", cast(ulong)i);
-
-        const char *id = buf.toString().ptr;
-        buf.reset();
-        return Lexer.idPool(id);
     }
 }
 
