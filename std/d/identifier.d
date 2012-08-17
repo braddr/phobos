@@ -8,7 +8,7 @@ import std.d.lexer;
 
 import std.outbuffer;
 
-// NOTE: the code expects there to be a \0 after the defined string's range
+// NOTE: in every case in the lexer, the string is contained inside the stringtable
 struct Identifier
 {
     int value;
@@ -26,9 +26,9 @@ struct Identifier
         this(s[0 .. strlen(s)], v);
     }
 
-    int equals(Identifier *o)
+    bool opEquals(Identifier *o)
     {
-        return &this == o || memcmp(str.ptr, o.toChars(), str.length+1) == 0;
+        return &this == o || this.str == o.str;
     }
 
     hash_t hashCode()
@@ -36,24 +36,9 @@ struct Identifier
         return calcHash(str);
     }
 
-    int compare(Identifier *o)
-    {
-        return memcmp(str.ptr, o.toChars(), str.length + 1);
-    }
-
-    void print()
-    {
-        fprintf(stdout, "%.*s", str.length, str.ptr);
-    }
-
     string toString()
     {
         return str;
-    }
-
-    char *toChars()
-    {
-        return cast(char*)str;
     }
 }
 

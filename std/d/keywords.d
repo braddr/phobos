@@ -20,7 +20,7 @@ void foreach_keyword(void delegate(ref const Keyword k) dg)
 
 struct Keyword
 {
-    const char* name;
+    string name;
     TOK value;
 }
 

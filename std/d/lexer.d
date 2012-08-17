@@ -16,6 +16,7 @@ import std.d.keywords;
 import std.d.stringtable;
 import std.d.token;
 
+import std.conv;
 import std.outbuffer;
 import std.uni;
 import std.utf;
@@ -35,8 +36,7 @@ static this()
 
     foreach_keyword((ref const Keyword k)
     {
-        const char *s = k.name;
-        StringValue *sv = Lexer.stringtable.insert(s, cast(uint)strlen(s));
+        StringValue *sv = Lexer.stringtable.insert(k.name);
         sv.ptrvalue = cast(void *) new Identifier(sv.toString(), k.value);
     });
 }
@@ -46,21 +46,17 @@ struct Loc
     string filename;
     uint linnum;
 
-    char* toChars()
+    string toString()
     {
-        OutBuffer buf = new OutBuffer();
-        scope(exit) delete buf;
+        char[] s;
 
         if (filename)
-            buf.printf("%s", filename);
+            s ~= filename;
 
         if (linnum)
-            buf.printf("(%d)", linnum);
-        buf.write(cast(byte)0);
-        ubyte[] b = buf.toBytes();
-        buf.reset();
+            s ~= "(" ~ to!string(linnum) ~ ")";
 
-        return cast(char *)b.ptr;
+        return cast(string)s;
     }
 }
 
@@ -145,10 +141,14 @@ struct Lexer
     /********************************************
      * Create an identifier in the string table.
      */
-    static Identifier *idPool(const char *s)
+    static Identifier* idPool(const char *s)
     {
-        size_t len = strlen(s);
-        StringValue *sv = stringtable.update(s, cast(uint)len);
+        return idPool(cast(string)s[0 .. strlen(s)]);
+    }
+
+    static Identifier* idPool(string s)
+    {
+        StringValue *sv = stringtable.update(s);
         Identifier *id = cast(Identifier *) sv.ptrvalue;
         if (!id)
         {
@@ -156,25 +156,6 @@ struct Lexer
             sv.ptrvalue = id;
         }
         return id;
-    }
-
-    static Identifier *uniqueId(const char *s)
-    {
-        static int num;
-        return uniqueId(s, ++num);
-    }
-
-    /*********************************************
-     * Create a unique identifier using the prefix s.
-     */
-    static Identifier *uniqueId(const char *s, int num)
-    {
-        char buffer[32];
-        size_t slen = strlen(s);
-
-        assert(slen + num.sizeof * 3 + 1 <= buffer.sizeof);
-        sprintf(buffer, "%s%d", s, num);
-        return idPool(buffer);
     }
 
     TOK nextToken()
@@ -366,7 +347,8 @@ struct Lexer
                         break;
                     }
 
-                    StringValue *sv = stringtable.update(cast(const(char*))t.ptr, cast(uint)(p - t.ptr));
+                    char[] s = cast(char[])t.ptr[0 .. p - t.ptr];
+                    StringValue *sv = stringtable.update(s);
                     Identifier *id = cast(Identifier *) sv.ptrvalue;
                     if (!id)
                     {   id = new Identifier(sv.toString(), TOK.TOKidentifier);
@@ -1135,7 +1117,7 @@ struct Lexer
 
                 case 0:
                 case 0x1A:
-                    error("unterminated string constant starting at %s", start.toChars());
+                    error("unterminated string constant starting at %s", start.toString());
                     t.ustring = cast(byte*)"".ptr;
                     t.len = 0;
                     t.postfix = 0;
@@ -1207,7 +1189,7 @@ struct Lexer
 
                 case 0:
                 case 0x1A:
-                    error("unterminated string constant starting at %s", start.toChars());
+                    error("unterminated string constant starting at %s", start.toString());
                     t.ustring = cast(byte*)"".ptr;
                     t.len = 0;
                     t.postfix = 0;
@@ -1347,7 +1329,7 @@ struct Lexer
                     }
                     else
                     {   hereid = t.ident;
-                        //printf("hereid = '%s'\n", hereid.toChars());
+                        //printf("hereid = '%.*s'\n", hereid.toString().length, hereid.toString().ptr);
                         blankrol = 1;
                     }
                     nest = 0;
@@ -1383,8 +1365,7 @@ struct Lexer
                     byte *psave = p;
                     p--;
                     scan(&t);               // read in possible heredoc identifier
-                    //printf("endid = '%s'\n", t.ident.toChars());
-                    if (t.value == TOK.TOKidentifier && t.ident.equals(hereid))
+                    if (t.value == TOK.TOKidentifier && hereid == t.ident)
                     {   /* should check that rest of line is blank
                          */
                         goto Ldone;
@@ -1411,7 +1392,7 @@ struct Lexer
         return TOK.TOKstring;
 
     Lerror:
-        error("unterminated string constant starting at %s", start.toChars());
+        error("unterminated string constant starting at %s", start.toString());
         t.ustring = cast(byte*)"".ptr;
         t.len = 0;
         t.postfix = 0;
@@ -1464,7 +1445,7 @@ struct Lexer
         return TOK.TOKstring;
 
     Lerror:
-        error("unterminated token string constant starting at %s", start.toChars());
+        error("unterminated token string constant starting at %s", start.toString());
         t.ustring = cast(byte*)"".ptr;
         t.len = 0;
         t.postfix = 0;
@@ -1524,7 +1505,7 @@ struct Lexer
                 case 0:
                 case 0x1A:
                     p--;
-                    error("unterminated string constant starting at %s", start.toChars());
+                    error("unterminated string constant starting at %s", start.toString());
                     t.ustring = cast(byte*)"".ptr;
                     t.len = 0;
                     t.postfix = 0;

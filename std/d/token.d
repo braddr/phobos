@@ -174,66 +174,57 @@ struct Token
         Identifier *ident;
     };
 
-    static const(char)* tochars[TOK.TOKMAX];
+    static string tochars[TOK.TOKMAX];
 
-    void print()
-    {
-        fprintf(stdout, "%s\n", toChars());
-    }
-
-    const(char)* toChars()
+    const(char)[] toChars()
     {
         static char buffer[3 + 3 * float80value.sizeof + 1];
 
         const(char)* p = buffer;
+        size_t num;
         switch (value)
         {
             case TOK.TOKint32v:
-                sprintf(buffer, "%d", int32value);
+                num = sprintf(buffer, "%d", int32value);
                 break;
 
             case TOK.TOKuns32v:
             case TOK.TOKcharv:
             case TOK.TOKwcharv:
             case TOK.TOKdcharv:
-                sprintf(buffer, "%uU", uns32value);
+                num = sprintf(buffer, "%uU", uns32value);
                 break;
 
             case TOK.TOKint64v:
-                sprintf(buffer, "%lldL", int64value);
+                num = sprintf(buffer, "%lldL", int64value);
                 break;
 
             case TOK.TOKuns64v:
-                sprintf(buffer, "%lluUL", uns64value);
+                num = sprintf(buffer, "%lluUL", uns64value);
                 break;
 
             case TOK.TOKfloat32v:
-                sprintf(buffer, "%g", float80value);
-                strcat(buffer, "f");
+                num = sprintf(buffer, "%gf", float80value);
                 break;
 
             case TOK.TOKfloat64v:
-                sprintf(buffer, "%g", float80value);
+                num = sprintf(buffer, "%g", float80value);
                 break;
 
             case TOK.TOKfloat80v:
-                sprintf(buffer, "%g", float80value);
-                strcat(buffer, "L");
+                num = sprintf(buffer, "%gL", float80value);
                 break;
 
             case TOK.TOKimaginary32v:
-                sprintf(buffer, "%g", float80value);
-                strcat(buffer, "fi");
+                num = sprintf(buffer, "%gfi", float80value);
                 break;
 
             case TOK.TOKimaginary64v:
-                sprintf(buffer, "%g", float80value);
-                strcat(buffer, "i");
+                num = sprintf(buffer, "%gi", float80value);
                 break;
 
             case TOK.TOKimaginary80v:
-                sprintf(buffer, "%g", float80value);
-                strcat(buffer, "Li");
+                num = sprintf(buffer, "%gLi", float80value);
                 break;
 
             case TOK.TOKstring:
@@ -241,10 +232,11 @@ struct Token
                 OutBuffer buf = new OutBuffer();
                 scope(exit) delete buf;
 
+                char[] us = cast(char[])ustring[0 .. len];
                 buf.write('"');
                 for (size_t i = 0; i < len; )
                 {
-                    int c = decode(cast(char[])ustring[0 .. len], i);
+                    int c = decode(us, i);
                     switch (c)
                     {
                         case 0:
@@ -271,7 +263,8 @@ struct Token
                 if (postfix)
                     buf.write('"');
                 buf.write(cast(byte)0);
-                p = cast(const(char)*)(buf.toBytes().ptr);
+                p = cast(char*)(buf.toBytes().ptr);
+                num = buf.toBytes().length;
                 break;
             }
 
@@ -302,25 +295,33 @@ struct Token
             case TOK.TOKcomplex64:
             case TOK.TOKcomplex80:
             case TOK.TOKvoid:
-                p = ident.toChars();
+            {
+                string pp = ident.toString();
+                p = pp.ptr;
+                num = pp.length;
                 break;
+            }
 
             default:
-                p = toChars(value);
+            {
+                const(char)[] pp = toChars(value);
+                p = pp.ptr;
+                num = pp.length;
                 break;
+            }
         }
-        return p;
+        return p[0 .. num];
     }
 
-    static const(char*) toChars(TOK value)
+    static const(char[]) toChars(TOK value)
     {
         static char buffer[3 + 3 * value.sizeof + 1];
 
-        const(char)* p = tochars[value];
+        const(char)[] p = tochars[value];
         if (!p)
         {
-            sprintf(buffer,"TOK%d",value);
-            p = buffer;
+            size_t num = sprintf(buffer, "TOK%d", value);
+            p = buffer[0 .. num];
         }
         return p;
     }

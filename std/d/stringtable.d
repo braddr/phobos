@@ -9,31 +9,48 @@ import core.stdc.string: memcmp, memcpy;
 // method because the only thing which should be creating these is StringTable.
 struct StringValue
 {
-    union
-    {
-        void *ptrvalue;
-        char *str;
-    };
+    void *ptrvalue;
+
 private:
-    uint length_;
+    size_t length_;
 
     immutable(char) lstring[0];
 
 public:
-    uint len() const { return length_; }
+    size_t len() const { return length_; }
     string toString() const { return (cast(immutable(char)*)&lstring)[0 .. length_]; }
-    const char *toDchars() const { return cast(char*)&lstring; }
 
 private:
     @disable this();  // not constructible
 
     // This is more like a placement new c'tor
-    void alloc(const char *p, uint l)
+    void alloc(const(char[]) s)
     {
-        length_ = l;
+        length_ = s.length;
         char* ptr = cast(char*)&lstring;
-        ptr[l] = 0;
-        memcpy(ptr, p, length_ * char.sizeof);
+        ptr[s.length] = 0;
+        memcpy(ptr, s.ptr, s.length);
+    }
+}
+
+// NOTE: holds a StringValue as a member, and since StringValue is a variable
+// length struct, we must add more space.
+struct StringEntry
+{
+    StringEntry *left;
+    StringEntry *right;
+    hash_t hash;
+
+    StringValue value;
+
+private:
+    static StringEntry *alloc(const(char[]) s)
+    {
+        //printf("StringEntry.alloc\n");
+        StringEntry *se = cast(StringEntry *)GC.calloc(StringEntry.sizeof + s.length + 1);
+        se.value.alloc(s);
+        se.hash = calcHash(s);
+        return se;
     }
 }
 
@@ -41,15 +58,13 @@ struct StringTable
 {
 private:
     StringEntry **table;
-    uint count;
-    uint tabledim;
+    size_t tabledim; // total size of the table, for bucket mod
 
 public:
-    void init(uint size = 37)
+    void init(size_t size = 37)
     {
         table = cast(StringEntry **)GC.calloc(size * (StringEntry *).sizeof);
         tabledim = size;
-        count = 0;
     }
 
     // can't be the dtor since memory might have already been released
@@ -57,66 +72,66 @@ public:
     {
         // Zero out dangling pointers to help garbage collector.
         // Should zero out StringEntry's too.
-        for (uint i = 0; i < count; i++)
+        foreach (size_t i; 0 .. tabledim)
             table[i] = null;
 
         table = null;
         tabledim = 0;
     }
 
-    StringValue *lookup(const char *s, uint len)
+    StringValue *lookup(const(char[]) s)
     {
-        StringEntry *se = *search(s, len);
+        StringEntry *se = *search(s);
         if (se)
             return &se.value;
         else
             return null;
     }
 
-    StringValue *insert(const char *s, uint len)
+    StringValue *insert(const(char[]) s)
     {
-        StringEntry **pse = search(s, len);
+        StringEntry **pse = search(s);
         StringEntry *se   = *pse;
         if (se)
             return null;            // error: already in table
         else
         {
-            se = StringEntry.alloc(s, len);
+            se = StringEntry.alloc(s);
             *pse = se;
         }
         return &se.value;
     }
 
-    StringValue *update(const char *s, uint len)
+    StringValue *update(const(char[]) s)
     {
-        StringEntry **pse = search(s, len);
+        StringEntry **pse = search(s);
         StringEntry *se   = *pse;
         if (!se)                    // not in table: so create new entry
         {
-            se = StringEntry.alloc(s, len);
+            se = StringEntry.alloc(s);
             *pse = se;
         }
         return &se.value;
     }
 
 private:
-    StringEntry **search(const char *s, uint len)
+    StringEntry **search(const(char[]) s)
     {
-        //printf("StringTable.search(%p,%d)\n",s,len);
+        //printf("StringTable.search(%p - %.*s, %d)\n", s.ptr, s.length, s.ptr, s.length);
 
-        hash_t hash = calcHash(s,len);
-        uint u = hash % tabledim;
+        hash_t hash = calcHash(s);
+        size_t u = hash % tabledim;
         StringEntry **se = &table[u];
-        //printf("\thash = %d, u = %d\n",hash,u);
+        //printf("\thash = %zd, u = %zd\n", hash, u);
         while (*se)
         {
             sizediff_t cmp = cast(sizediff_t)(*se).hash - cast(sizediff_t)hash;
             if (cmp == 0)
             {
-                cmp = (*se).value.len() - len;
+                cmp = (*se).value.len() - s.length;
                 if (cmp == 0)
                 {
-                    cmp = memcmp(s,(*se).value.toDchars(),len);
+                    cmp = memcmp(s.ptr, (*se).value.toString().ptr, s.length);
                     if (cmp == 0)
                         break;
                 }
@@ -126,12 +141,12 @@ private:
             else
                 se = &(*se).right;
         }
-        //printf("\treturn %p, %p\n",se, (*se));
+        //printf("\treturn %p, %p\n", se, (*se));
         return se;
     }
 }
 
-hash_t calcHash(string str)
+hash_t calcHash(const(char[]) str)
 {
     return calcHash(str.ptr, str.length);
 }
@@ -181,23 +196,6 @@ else
                 len -= 4;
                 break;
         }
-    }
-}
-
-struct StringEntry
-{
-    StringEntry *left;
-    StringEntry *right;
-    hash_t hash;
-
-    StringValue value;
-
-    static StringEntry *alloc(const char *s, uint len)
-    {
-        StringEntry *se = cast(StringEntry *)GC.calloc(StringEntry.sizeof + len + 1);
-        se.value.alloc(s, len);
-        se.hash = calcHash(s, len);
-        return se;
     }
 }
 

@@ -28,5 +28,6 @@ void main()
         lex(d.name);
     }
 
-    //lex("std/xml.d");
+    //foreach (i; 1 .. 10)
+    //    lex("std/xml.d");
 }
