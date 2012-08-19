@@ -89,27 +89,21 @@ struct Lexer
     StringTable stringtable;
     Loc loc;                    // for error messages
 
-    byte *base;        // pointer to start of buffer
-    byte *end;         // past end of buffer
-    byte *p;           // current character
+    byte[] contents;            // the buffer to lex
+    byte *p;                    // current character
     Token token;
-    string mod;
     int doDocComment;           // collect doc comment information
     int anyToken;               // !=0 means seen at least one token
     int commentToken;           // !=0 means comments are TOKcomment's
 
-    this(StringTable st, string mod,
-        byte *base, uint begoffset, uint endoffset,
-        int doDocComment, int commentToken)
+    this(StringTable st, string mod, byte[] contents, int doDocComment, int commentToken)
     {
         //printf("Lexer::Lexer(%p,%d)\n",base,length);
-        //printf("lexer.mod = %p, %p\n", mod, this.loc.mod);
+        //printf("lexer.moduleName = %p, %p\n", mod, this.loc.mod);
         this.stringtable = st;
         this.loc = Loc(mod, 1);
-        this.base = base;
-        this.end  = base + endoffset;
-        this.p = base + begoffset;
-        this.mod = mod;
+        this.contents = contents;
+        this.p = this.contents.ptr;
         this.doDocComment = doDocComment;
         this.anyToken = 0;
         this.commentToken = commentToken;
@@ -198,7 +192,7 @@ struct Lexer
         t.lineComment = null;
         while (1)
         {
-            assert(base <= p && p <= end);
+            assert(contents.ptr <= p && p <= (contents.ptr+contents.length));
             t.ptr = p;
             //printf("offset = %6ld, p = %p, *p = '%c'\n", p - base, p, *p);
             switch (*p)
@@ -460,7 +454,7 @@ struct Lexer
                                         case 0:
                                         case 0x1A:
                                             error("unterminated /* */ comment");
-                                            p = end;
+                                            p = &contents[$];
                                             t.value = TOK.TOKeof;
                                             return;
 
@@ -508,13 +502,13 @@ struct Lexer
                                     case 0x1A:
                                         if (commentToken)
                                         {
-                                            p = end;
+                                            p = &contents[$];
                                             t.value = TOK.TOKcomment;
                                             return;
                                         }
                                         if (doDocComment && t.ptr[2] == '/')
                                             getDocComment(t, lastLine == linnum);
-                                        p = end;
+                                        p = &contents[$];
                                         t.value = TOK.TOKeof;
                                         return;
 
@@ -586,7 +580,7 @@ struct Lexer
                                     case 0:
                                     case 0x1A:
                                         error("unterminated /+ +/ comment");
-                                        p = end;
+                                        p = &contents[$];
                                         t.value = TOK.TOKeof;
                                         return;
 
@@ -1317,7 +1311,7 @@ struct Lexer
                     p--;
                     scan(&t);               // read in heredoc identifier
                     if (t.value != TOK.TOKidentifier)
-                    {   error("identifier expected for heredoc, not %s", t.toChars());
+                    {   error("identifier expected for heredoc, not %s", t.toString());
                         delimright = c;
                     }
                     else
@@ -2119,7 +2113,7 @@ version(none) {
     {
         Token tok;
         int linnum;
-        char *filespec = null;
+        char[] filespec;
         Loc loc = this.loc;
 
         scan(&tok);
@@ -2141,7 +2135,7 @@ version(none) {
                 Lnewline:
                     this.loc.linnum = linnum;
                     if (filespec)
-                        this.loc.filename = cast(string)filespec[0 .. strlen(filespec)];
+                        this.loc.filename = cast(string)filespec.dup;
                     return;
 
                 case '\r':
@@ -2160,10 +2154,10 @@ version(none) {
                     continue;                       // skip white space
 
                 case '_':
-                    if (mod && memcmp(p, "__FILE__".ptr, 8) == 0)
+                    if (loc.filename && p[0 .. 8] == "__FILE__")
                     {
                         p += 8;
-                        filespec = strdup((loc.filename ? loc.filename : mod).ptr);
+                        filespec = loc.filename.dup;
                         continue;
                     }
                     goto Lerr;
@@ -2186,8 +2180,7 @@ version(none) {
                                 goto Lerr;
 
                             case '"':
-                                stringbuffer.write(cast(byte)0);
-                                filespec = strdup(cast(char*)stringbuffer.data.ptr);
+                                filespec = cast(char[])stringbuffer.data.dup;
                                 p++;
                                 break;
 
@@ -2490,15 +2483,15 @@ unittest
     TOK tok;
 
     tok = lex1.nextToken();
-    //printf("tok == %s, %d, %d\n", Token.toChars(tok), tok, TOK.TOKint32);
+    //printf("tok == %s, %d, %d\n", Token.toString(tok), tok, TOK.TOKint32);
     assert(tok == TOK.TOKint32);
 
     tok = lex1.nextToken();
-    //printf("tok == %s, %d, %d\n", Token.toChars(tok), tok, TOK.TOKeof);
+    //printf("tok == %s, %d, %d\n", Token.toString(tok), tok, TOK.TOKeof);
     assert(tok == TOK.TOKeof);
 
     tok = lex1.nextToken();
-    //printf("tok == %s, %d, %d\n", Token.toChars(tok), tok, TOK.TOKeof);
+    //printf("tok == %s, %d, %d\n", Token.toString(tok), tok, TOK.TOKeof);
     assert(tok == TOK.TOKeof);
 }
 

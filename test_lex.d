@@ -13,11 +13,15 @@ void lex(StringTable table, string filename)
 {
     byte[] contents = cast(byte[])read(filename);
     contents ~= 0;
-    //writeln("filename; ", filename, ", length; ", contents.length);
-    auto l = Lexer(table, filename, cast(byte*)contents.ptr, 0, cast(uint)contents.length, 0, 0);
+    writeln("filename; ", filename, ", length; ", contents.length);
+    auto l = Lexer(table, filename, contents, 0, 0);
 
     do
+    {
         l.nextToken();
+        writef("  %s", l.token);
+        if (l.token.value == TOK.TOKsemicolon) writeln();
+    }
     while (l.token.value != TOK.TOKeof);
 }
 
@@ -25,12 +29,14 @@ void main()
 {
     StringTable table = createAndPopulatedStringTable();
 
+    /+
     auto dFiles = filter!`endsWith(a.name,".d")`(dirEntries("std", SpanMode.depth));
     foreach(d; dFiles)
     {
         lex(table, d.name);
     }
+    +/
 
     //foreach (i; 1 .. 10)
-    //    lex("std/xml.d");
+        lex(table, "std/xml.d");
 }

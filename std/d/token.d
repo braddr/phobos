@@ -175,12 +175,11 @@ struct Token
 
     static string tochars[TOK.TOKMAX];
 
-    const(char)[] toChars()
+    string toString()
     {
-        static char buffer[3 + 3 * float80value.sizeof + 1];
-
-        const(char)* p = buffer;
+        char buffer[3 + 3 * float80value.sizeof + 1];
         size_t num;
+
         switch (value)
         {
             case TOK.TOKint32v:
@@ -260,11 +259,9 @@ struct Token
                 }
                 buf.write('"');
                 if (postfix)
-                    buf.write('"');
-                buf.write(cast(byte)0);
-                p = cast(char*)(buf.toBytes().ptr);
-                num = buf.toBytes().length;
-                break;
+                    buf.write(postfix);
+
+                return cast(string)buf.toBytes().idup;
             }
 
             case TOK.TOKidentifier:
@@ -294,33 +291,23 @@ struct Token
             case TOK.TOKcomplex64:
             case TOK.TOKcomplex80:
             case TOK.TOKvoid:
-            {
-                string pp = ident.toString();
-                p = pp.ptr;
-                num = pp.length;
-                break;
-            }
+                return ident.toString();
 
             default:
-            {
-                const(char)[] pp = toChars(value);
-                p = pp.ptr;
-                num = pp.length;
-                break;
-            }
+                return toString(value);
         }
-        return p[0 .. num];
+        return buffer[0 .. num].idup;
     }
 
-    static const(char[]) toChars(TOK value)
+    static string toString(TOK value)
     {
-        static char buffer[3 + 3 * value.sizeof + 1];
-
-        const(char)[] p = tochars[value];
+        string p = tochars[value];
         if (!p)
         {
+            char buffer[3 + 3 * value.sizeof + 1];
+
             size_t num = sprintf(buffer, "TOK%d", value);
-            p = buffer[0 .. num];
+            p = buffer[0 .. num].idup;
         }
         return p;
     }
