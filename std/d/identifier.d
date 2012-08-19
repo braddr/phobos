@@ -1,11 +1,5 @@
 module std.d.identifier;
 
-import std.d.stringtable;
-import std.d.lexer;
-
-import std.outbuffer;
-
-// NOTE: in every case in the lexer, the string is contained inside the stringtable
 struct Identifier
 {
     int value;
@@ -13,7 +7,6 @@ struct Identifier
 
     this(string s, int v)
     {
-        //printf("Identifier('%.*s', %d)\n", s.length, s.ptr, v);
         str = s;
         value = v;
     }
@@ -21,11 +14,6 @@ struct Identifier
     bool opEquals(Identifier *o)
     {
         return &this == o || this.str == o.str;
-    }
-
-    hash_t hashCode()
-    {
-        return calcHash(str);
     }
 
     string toString()
@@ -310,283 +298,299 @@ struct Id
     static Identifier *isSame;
     static Identifier *compiles;
     static Identifier *parameters;
-
-    static void initialize()
-    {
-        IUnknown = Lexer.idPool("IUnknown");
-        Object = Lexer.idPool("Object");
-        object = Lexer.idPool("object");
-        max = Lexer.idPool("max");
-        min = Lexer.idPool("min");
-        This = Lexer.idPool("this");
-        Super = Lexer.idPool("super");
-        ctor = Lexer.idPool("__ctor");
-        dtor = Lexer.idPool("__dtor");
-        cpctor = Lexer.idPool("__cpctor");
-        _postblit = Lexer.idPool("__postblit");
-        classInvariant = Lexer.idPool("__invariant");
-        unitTest = Lexer.idPool("__unitTest");
-        require = Lexer.idPool("__require");
-        ensure = Lexer.idPool("__ensure");
-        init = Lexer.idPool("init");
-        size = Lexer.idPool("size");
-        __sizeof = Lexer.idPool("sizeof");
-        __xalignof = Lexer.idPool("alignof");
-        Mangleof = Lexer.idPool("mangleof");
-        Stringof = Lexer.idPool("stringof");
-        Tupleof = Lexer.idPool("tupleof");
-        length = Lexer.idPool("length");
-        remove = Lexer.idPool("remove");
-        ptr = Lexer.idPool("ptr");
-        array = Lexer.idPool("array");
-        funcptr = Lexer.idPool("funcptr");
-        dollar = Lexer.idPool("__dollar");
-        ctfe = Lexer.idPool("__ctfe");
-        offset = Lexer.idPool("offset");
-        offsetof = Lexer.idPool("offsetof");
-        ModuleInfo = Lexer.idPool("ModuleInfo");
-        ClassInfo = Lexer.idPool("ClassInfo");
-        classinfo = Lexer.idPool("classinfo");
-        typeinfo = Lexer.idPool("typeinfo");
-        outer = Lexer.idPool("outer");
-        Exception = Lexer.idPool("Exception");
-        AssociativeArray = Lexer.idPool("AssociativeArray");
-        RTInfo = Lexer.idPool("RTInfo");
-        Throwable = Lexer.idPool("Throwable");
-        Error = Lexer.idPool("Error");
-        withSym = Lexer.idPool("__withSym");
-        result = Lexer.idPool("__result");
-        returnLabel = Lexer.idPool("__returnLabel");
-        Delegate = Lexer.idPool("delegate");
-        line = Lexer.idPool("line");
-        empty = Lexer.idPool("");
-        p = Lexer.idPool("p");
-        q = Lexer.idPool("q");
-        coverage = Lexer.idPool("__coverage");
-        __vptr = Lexer.idPool("__vptr");
-        __monitor = Lexer.idPool("__monitor");
-        TypeInfo = Lexer.idPool("TypeInfo");
-        TypeInfo_Class = Lexer.idPool("TypeInfo_Class");
-        TypeInfo_Interface = Lexer.idPool("TypeInfo_Interface");
-        TypeInfo_Struct = Lexer.idPool("TypeInfo_Struct");
-        TypeInfo_Enum = Lexer.idPool("TypeInfo_Enum");
-        TypeInfo_Typedef = Lexer.idPool("TypeInfo_Typedef");
-        TypeInfo_Pointer = Lexer.idPool("TypeInfo_Pointer");
-        TypeInfo_Vector = Lexer.idPool("TypeInfo_Vector");
-        TypeInfo_Array = Lexer.idPool("TypeInfo_Array");
-        TypeInfo_StaticArray = Lexer.idPool("TypeInfo_StaticArray");
-        TypeInfo_AssociativeArray = Lexer.idPool("TypeInfo_AssociativeArray");
-        TypeInfo_Function = Lexer.idPool("TypeInfo_Function");
-        TypeInfo_Delegate = Lexer.idPool("TypeInfo_Delegate");
-        TypeInfo_Tuple = Lexer.idPool("TypeInfo_Tuple");
-        TypeInfo_Const = Lexer.idPool("TypeInfo_Const");
-        TypeInfo_Invariant = Lexer.idPool("TypeInfo_Invariant");
-        TypeInfo_Shared = Lexer.idPool("TypeInfo_Shared");
-        TypeInfo_Wild = Lexer.idPool("TypeInfo_Inout");
-        elements = Lexer.idPool("elements");
-        _arguments_typeinfo = Lexer.idPool("_arguments_typeinfo");
-        _arguments = Lexer.idPool("_arguments");
-        _argptr = Lexer.idPool("_argptr");
-        _match = Lexer.idPool("_match");
-        destroy = Lexer.idPool("destroy");
-        postblit = Lexer.idPool("postblit");
-        LINE = Lexer.idPool("__LINE__");
-        FILE = Lexer.idPool("__FILE__");
-        DATE = Lexer.idPool("__DATE__");
-        TIME = Lexer.idPool("__TIME__");
-        TIMESTAMP = Lexer.idPool("__TIMESTAMP__");
-        VENDOR = Lexer.idPool("__VENDOR__");
-        VERSIONX = Lexer.idPool("__VERSION__");
-        EOFX = Lexer.idPool("__EOF__");
-        nan = Lexer.idPool("nan");
-        infinity = Lexer.idPool("infinity");
-        dig = Lexer.idPool("dig");
-        epsilon = Lexer.idPool("epsilon");
-        mant_dig = Lexer.idPool("mant_dig");
-        max_10_exp = Lexer.idPool("max_10_exp");
-        max_exp = Lexer.idPool("max_exp");
-        min_10_exp = Lexer.idPool("min_10_exp");
-        min_exp = Lexer.idPool("min_exp");
-        min_normal = Lexer.idPool("min_normal");
-        re = Lexer.idPool("re");
-        im = Lexer.idPool("im");
-        C = Lexer.idPool("C");
-        D = Lexer.idPool("D");
-        Windows = Lexer.idPool("Windows");
-        Pascal = Lexer.idPool("Pascal");
-        System = Lexer.idPool("System");
-        exit = Lexer.idPool("exit");
-        success = Lexer.idPool("success");
-        failure = Lexer.idPool("failure");
-        keys = Lexer.idPool("keys");
-        values = Lexer.idPool("values");
-        rehash = Lexer.idPool("rehash");
-        sort = Lexer.idPool("sort");
-        reverse = Lexer.idPool("reverse");
-        dup = Lexer.idPool("dup");
-        idup = Lexer.idPool("idup");
-        property = Lexer.idPool("property");
-        safe = Lexer.idPool("safe");
-        trusted = Lexer.idPool("trusted");
-        system = Lexer.idPool("system");
-        disable = Lexer.idPool("disable");
-        ___out = Lexer.idPool("out");
-        ___in = Lexer.idPool("in");
-        __int = Lexer.idPool("int");
-        __dollar = Lexer.idPool("$");
-        __LOCAL_SIZE = Lexer.idPool("__LOCAL_SIZE");
-        uadd = Lexer.idPool("opPos");
-        neg = Lexer.idPool("opNeg");
-        com = Lexer.idPool("opCom");
-        add = Lexer.idPool("opAdd");
-        add_r = Lexer.idPool("opAdd_r");
-        sub = Lexer.idPool("opSub");
-        sub_r = Lexer.idPool("opSub_r");
-        mul = Lexer.idPool("opMul");
-        mul_r = Lexer.idPool("opMul_r");
-        div = Lexer.idPool("opDiv");
-        div_r = Lexer.idPool("opDiv_r");
-        mod = Lexer.idPool("opMod");
-        mod_r = Lexer.idPool("opMod_r");
-        eq = Lexer.idPool("opEquals");
-        cmp = Lexer.idPool("opCmp");
-        iand = Lexer.idPool("opAnd");
-        iand_r = Lexer.idPool("opAnd_r");
-        ior = Lexer.idPool("opOr");
-        ior_r = Lexer.idPool("opOr_r");
-        ixor = Lexer.idPool("opXor");
-        ixor_r = Lexer.idPool("opXor_r");
-        shl = Lexer.idPool("opShl");
-        shl_r = Lexer.idPool("opShl_r");
-        shr = Lexer.idPool("opShr");
-        shr_r = Lexer.idPool("opShr_r");
-        ushr = Lexer.idPool("opUShr");
-        ushr_r = Lexer.idPool("opUShr_r");
-        cat = Lexer.idPool("opCat");
-        cat_r = Lexer.idPool("opCat_r");
-        assign = Lexer.idPool("opAssign");
-        addass = Lexer.idPool("opAddAssign");
-        subass = Lexer.idPool("opSubAssign");
-        mulass = Lexer.idPool("opMulAssign");
-        divass = Lexer.idPool("opDivAssign");
-        modass = Lexer.idPool("opModAssign");
-        andass = Lexer.idPool("opAndAssign");
-        orass = Lexer.idPool("opOrAssign");
-        xorass = Lexer.idPool("opXorAssign");
-        shlass = Lexer.idPool("opShlAssign");
-        shrass = Lexer.idPool("opShrAssign");
-        ushrass = Lexer.idPool("opUShrAssign");
-        catass = Lexer.idPool("opCatAssign");
-        postinc = Lexer.idPool("opPostInc");
-        postdec = Lexer.idPool("opPostDec");
-        index = Lexer.idPool("opIndex");
-        indexass = Lexer.idPool("opIndexAssign");
-        slice = Lexer.idPool("opSlice");
-        sliceass = Lexer.idPool("opSliceAssign");
-        call = Lexer.idPool("opCall");
-        Cast = Lexer.idPool("opCast");
-        match = Lexer.idPool("opMatch");
-        next = Lexer.idPool("opNext");
-        opIn = Lexer.idPool("opIn");
-        opIn_r = Lexer.idPool("opIn_r");
-        opStar = Lexer.idPool("opStar");
-        opDot = Lexer.idPool("opDot");
-        opDispatch = Lexer.idPool("opDispatch");
-        opDollar = Lexer.idPool("opDollar");
-        opUnary = Lexer.idPool("opUnary");
-        opIndexUnary = Lexer.idPool("opIndexUnary");
-        opSliceUnary = Lexer.idPool("opSliceUnary");
-        opBinary = Lexer.idPool("opBinary");
-        opBinaryRight = Lexer.idPool("opBinaryRight");
-        opOpAssign = Lexer.idPool("opOpAssign");
-        opIndexOpAssign = Lexer.idPool("opIndexOpAssign");
-        opSliceOpAssign = Lexer.idPool("opSliceOpAssign");
-        pow = Lexer.idPool("opPow");
-        pow_r = Lexer.idPool("opPow_r");
-        powass = Lexer.idPool("opPowAssign");
-        classNew = Lexer.idPool("new");
-        classDelete = Lexer.idPool("delete");
-        apply = Lexer.idPool("opApply");
-        applyReverse = Lexer.idPool("opApplyReverse");
-        Fempty = Lexer.idPool("empty");
-        Ffront = Lexer.idPool("front");
-        Fback = Lexer.idPool("back");
-        FpopFront = Lexer.idPool("popFront");
-        FpopBack = Lexer.idPool("popBack");
-        adDup = Lexer.idPool("_adDupT");
-        adReverse = Lexer.idPool("_adReverse");
-        aaLen = Lexer.idPool("_aaLen");
-        aaKeys = Lexer.idPool("_aaKeys");
-        aaValues = Lexer.idPool("_aaValues");
-        aaRehash = Lexer.idPool("_aaRehash");
-        monitorenter = Lexer.idPool("_d_monitorenter");
-        monitorexit = Lexer.idPool("_d_monitorexit");
-        criticalenter = Lexer.idPool("_d_criticalenter");
-        criticalexit = Lexer.idPool("_d_criticalexit");
-        _ArrayEq = Lexer.idPool("_ArrayEq");
-        GNU_asm = Lexer.idPool("GNU_asm");
-        lib = Lexer.idPool("lib");
-        msg = Lexer.idPool("msg");
-        startaddress = Lexer.idPool("startaddress");
-        tohash = Lexer.idPool("toHash");
-        tostring = Lexer.idPool("toString");
-        getmembers = Lexer.idPool("getMembers");
-        __alloca = Lexer.idPool("alloca");
-        main = Lexer.idPool("main");
-        WinMain = Lexer.idPool("WinMain");
-        DllMain = Lexer.idPool("DllMain");
-        tls_get_addr = Lexer.idPool("___tls_get_addr");
-        va_argsave_t = Lexer.idPool("__va_argsave_t");
-        va_argsave = Lexer.idPool("__va_argsave");
-        std = Lexer.idPool("std");
-        core = Lexer.idPool("core");
-        math = Lexer.idPool("math");
-        sin = Lexer.idPool("sin");
-        cos = Lexer.idPool("cos");
-        tan = Lexer.idPool("tan");
-        _sqrt = Lexer.idPool("sqrt");
-        _pow = Lexer.idPool("pow");
-        atan2 = Lexer.idPool("atan2");
-        rndtol = Lexer.idPool("rndtol");
-        expm1 = Lexer.idPool("expm1");
-        exp2 = Lexer.idPool("exp2");
-        yl2x = Lexer.idPool("yl2x");
-        yl2xp1 = Lexer.idPool("yl2xp1");
-        fabs = Lexer.idPool("fabs");
-        bitop = Lexer.idPool("bitop");
-        bsf = Lexer.idPool("bsf");
-        bsr = Lexer.idPool("bsr");
-        bswap = Lexer.idPool("bswap");
-        isAbstractClass = Lexer.idPool("isAbstractClass");
-        isArithmetic = Lexer.idPool("isArithmetic");
-        isAssociativeArray = Lexer.idPool("isAssociativeArray");
-        isFinalClass = Lexer.idPool("isFinalClass");
-        isFloating = Lexer.idPool("isFloating");
-        isIntegral = Lexer.idPool("isIntegral");
-        isScalar = Lexer.idPool("isScalar");
-        isStaticArray = Lexer.idPool("isStaticArray");
-        isUnsigned = Lexer.idPool("isUnsigned");
-        isVirtualFunction = Lexer.idPool("isVirtualFunction");
-        isVirtualMethod = Lexer.idPool("isVirtualMethod");
-        isAbstractFunction = Lexer.idPool("isAbstractFunction");
-        isFinalFunction = Lexer.idPool("isFinalFunction");
-        isStaticFunction = Lexer.idPool("isStaticFunction");
-        isRef = Lexer.idPool("isRef");
-        isOut = Lexer.idPool("isOut");
-        isLazy = Lexer.idPool("isLazy");
-        hasMember = Lexer.idPool("hasMember");
-        identifier = Lexer.idPool("identifier");
-        parent = Lexer.idPool("parent");
-        getMember = Lexer.idPool("getMember");
-        getOverloads = Lexer.idPool("getOverloads");
-        getVirtualFunctions = Lexer.idPool("getVirtualFunctions");
-        getVirtualMethods = Lexer.idPool("getVirtualMethods");
-        classInstanceSize = Lexer.idPool("classInstanceSize");
-        allMembers = Lexer.idPool("allMembers");
-        derivedMembers = Lexer.idPool("derivedMembers");
-        isSame = Lexer.idPool("isSame");
-        compiles = Lexer.idPool("compiles");
-        parameters = Lexer.idPool("parameters");
-    }
 }
 
+void foreach_identifier(void delegate(ref IdEntry i) dg)
+{
+    foreach (ref i; identifiers())
+        dg(i);
+}
+
+struct IdEntry
+{
+    string       name;
+    Identifier** id;
+}
+
+IdEntry[] identifiers()
+{
+    IdEntry[] idlist =
+    [
+        { "IUnknown",                  &Id.IUnknown                  },
+        { "Object",                    &Id.Object                    },
+        { "object",                    &Id.object                    },
+        { "max",                       &Id.max                       },
+        { "min",                       &Id.min                       },
+        { "this",                      &Id.This                      },
+        { "super",                     &Id.Super                     },
+        { "__ctor",                    &Id.ctor                      },
+        { "__dtor",                    &Id.dtor                      },
+        { "__cpctor",                  &Id.cpctor                    },
+        { "__postblit",                &Id._postblit                 },
+        { "__invariant",               &Id.classInvariant            },
+        { "__unitTest",                &Id.unitTest                  },
+        { "__require",                 &Id.require                   },
+        { "__ensure",                  &Id.ensure                    },
+        { "init",                      &Id.init                      },
+        { "size",                      &Id.size                      },
+        { "sizeof",                    &Id.__sizeof                  },
+        { "alignof",                   &Id.__xalignof                },
+        { "mangleof",                  &Id.Mangleof                  },
+        { "stringof",                  &Id.Stringof                  },
+        { "tupleof",                   &Id.Tupleof                   },
+        { "length",                    &Id.length                    },
+        { "remove",                    &Id.remove                    },
+        { "ptr",                       &Id.ptr                       },
+        { "array",                     &Id.array                     },
+        { "funcptr",                   &Id.funcptr                   },
+        { "__dollar",                  &Id.dollar                    },
+        { "__ctfe",                    &Id.ctfe                      },
+        { "offset",                    &Id.offset                    },
+        { "offsetof",                  &Id.offsetof                  },
+        { "ModuleInfo",                &Id.ModuleInfo                },
+        { "ClassInfo",                 &Id.ClassInfo                 },
+        { "classinfo",                 &Id.classinfo                 },
+        { "typeinfo",                  &Id.typeinfo                  },
+        { "outer",                     &Id.outer                     },
+        { "Exception",                 &Id.Exception                 },
+        { "AssociativeArray",          &Id.AssociativeArray          },
+        { "RTInfo",                    &Id.RTInfo                    },
+        { "Throwable",                 &Id.Throwable                 },
+        { "Error",                     &Id.Error                     },
+        { "__withSym",                 &Id.withSym                   },
+        { "__result",                  &Id.result                    },
+        { "__returnLabel",             &Id.returnLabel               },
+        { "delegate",                  &Id.Delegate                  },
+        { "line",                      &Id.line                      },
+        { "",                          &Id.empty                     },
+        { "p",                         &Id.p                         },
+        { "q",                         &Id.q                         },
+        { "__coverage",                &Id.coverage                  },
+        { "__vptr",                    &Id.__vptr                    },
+        { "__monitor",                 &Id.__monitor                 },
+        { "TypeInfo",                  &Id.TypeInfo                  },
+        { "TypeInfo_Class",            &Id.TypeInfo_Class            },
+        { "TypeInfo_Interface",        &Id.TypeInfo_Interface        },
+        { "TypeInfo_Struct",           &Id.TypeInfo_Struct           },
+        { "TypeInfo_Enum",             &Id.TypeInfo_Enum             },
+        { "TypeInfo_Typedef",          &Id.TypeInfo_Typedef          },
+        { "TypeInfo_Pointer",          &Id.TypeInfo_Pointer          },
+        { "TypeInfo_Vector",           &Id.TypeInfo_Vector           },
+        { "TypeInfo_Array",            &Id.TypeInfo_Array            },
+        { "TypeInfo_StaticArray",      &Id.TypeInfo_StaticArray      },
+        { "TypeInfo_AssociativeArray", &Id.TypeInfo_AssociativeArray },
+        { "TypeInfo_Function",         &Id.TypeInfo_Function         },
+        { "TypeInfo_Delegate",         &Id.TypeInfo_Delegate         },
+        { "TypeInfo_Tuple",            &Id.TypeInfo_Tuple            },
+        { "TypeInfo_Const",            &Id.TypeInfo_Const            },
+        { "TypeInfo_Invariant",        &Id.TypeInfo_Invariant        },
+        { "TypeInfo_Shared",           &Id.TypeInfo_Shared           },
+        { "TypeInfo_Inout",            &Id.TypeInfo_Wild             },
+        { "elements",                  &Id.elements                  },
+        { "_arguments_typeinfo",       &Id._arguments_typeinfo       },
+        { "_arguments",                &Id._arguments                },
+        { "_argptr",                   &Id._argptr                   },
+        { "_match",                    &Id._match                    },
+        { "destroy",                   &Id.destroy                   },
+        { "postblit",                  &Id.postblit                  },
+        { "__LINE__",                  &Id.LINE                      },
+        { "__FILE__",                  &Id.FILE                      },
+        { "__DATE__",                  &Id.DATE                      },
+        { "__TIME__",                  &Id.TIME                      },
+        { "__TIMESTAMP__",             &Id.TIMESTAMP                 },
+        { "__VENDOR__",                &Id.VENDOR                    },
+        { "__VERSION__",               &Id.VERSIONX                  },
+        { "__EOF__",                   &Id.EOFX                      },
+        { "nan",                       &Id.nan                       },
+        { "infinity",                  &Id.infinity                  },
+        { "dig",                       &Id.dig                       },
+        { "epsilon",                   &Id.epsilon                   },
+        { "mant_dig",                  &Id.mant_dig                  },
+        { "max_10_exp",                &Id.max_10_exp                },
+        { "max_exp",                   &Id.max_exp                   },
+        { "min_10_exp",                &Id.min_10_exp                },
+        { "min_exp",                   &Id.min_exp                   },
+        { "min_normal",                &Id.min_normal                },
+        { "re",                        &Id.re                        },
+        { "im",                        &Id.im                        },
+        { "C",                         &Id.C                         },
+        { "D",                         &Id.D                         },
+        { "Windows",                   &Id.Windows                   },
+        { "Pascal",                    &Id.Pascal                    },
+        { "System",                    &Id.System                    },
+        { "exit",                      &Id.exit                      },
+        { "success",                   &Id.success                   },
+        { "failure",                   &Id.failure                   },
+        { "keys",                      &Id.keys                      },
+        { "values",                    &Id.values                    },
+        { "rehash",                    &Id.rehash                    },
+        { "sort",                      &Id.sort                      },
+        { "reverse",                   &Id.reverse                   },
+        { "dup",                       &Id.dup                       },
+        { "idup",                      &Id.idup                      },
+        { "property",                  &Id.property                  },
+        { "safe",                      &Id.safe                      },
+        { "trusted",                   &Id.trusted                   },
+        { "system",                    &Id.system                    },
+        { "disable",                   &Id.disable                   },
+        { "out",                       &Id.___out                    },
+        { "in",                        &Id.___in                     },
+        { "int",                       &Id.__int                     },
+        { "$",                         &Id.__dollar                  },
+        { "__LOCAL_SIZE",              &Id.__LOCAL_SIZE              },
+        { "opPos",                     &Id.uadd                      },
+        { "opNeg",                     &Id.neg                       },
+        { "opCom",                     &Id.com                       },
+        { "opAdd",                     &Id.add                       },
+        { "opAdd_r",                   &Id.add_r                     },
+        { "opSub",                     &Id.sub                       },
+        { "opSub_r",                   &Id.sub_r                     },
+        { "opMul",                     &Id.mul                       },
+        { "opMul_r",                   &Id.mul_r                     },
+        { "opDiv",                     &Id.div                       },
+        { "opDiv_r",                   &Id.div_r                     },
+        { "opMod",                     &Id.mod                       },
+        { "opMod_r",                   &Id.mod_r                     },
+        { "opEquals",                  &Id.eq                        },
+        { "opCmp",                     &Id.cmp                       },
+        { "opAnd",                     &Id.iand                      },
+        { "opAnd_r",                   &Id.iand_r                    },
+        { "opOr",                      &Id.ior                       },
+        { "opOr_r",                    &Id.ior_r                     },
+        { "opXor",                     &Id.ixor                      },
+        { "opXor_r",                   &Id.ixor_r                    },
+        { "opShl",                     &Id.shl                       },
+        { "opShl_r",                   &Id.shl_r                     },
+        { "opShr",                     &Id.shr                       },
+        { "opShr_r",                   &Id.shr_r                     },
+        { "opUShr",                    &Id.ushr                      },
+        { "opUShr_r",                  &Id.ushr_r                    },
+        { "opCat",                     &Id.cat                       },
+        { "opCat_r",                   &Id.cat_r                     },
+        { "opAssign",                  &Id.assign                    },
+        { "opAddAssign",               &Id.addass                    },
+        { "opSubAssign",               &Id.subass                    },
+        { "opMulAssign",               &Id.mulass                    },
+        { "opDivAssign",               &Id.divass                    },
+        { "opModAssign",               &Id.modass                    },
+        { "opAndAssign",               &Id.andass                    },
+        { "opOrAssign",                &Id.orass                     },
+        { "opXorAssign",               &Id.xorass                    },
+        { "opShlAssign",               &Id.shlass                    },
+        { "opShrAssign",               &Id.shrass                    },
+        { "opUShrAssign",              &Id.ushrass                   },
+        { "opCatAssign",               &Id.catass                    },
+        { "opPostInc",                 &Id.postinc                   },
+        { "opPostDec",                 &Id.postdec                   },
+        { "opIndex",                   &Id.index                     },
+        { "opIndexAssign",             &Id.indexass                  },
+        { "opSlice",                   &Id.slice                     },
+        { "opSliceAssign",             &Id.sliceass                  },
+        { "opCall",                    &Id.call                      },
+        { "opCast",                    &Id.Cast                      },
+        { "opMatch",                   &Id.match                     },
+        { "opNext",                    &Id.next                      },
+        { "opIn",                      &Id.opIn                      },
+        { "opIn_r",                    &Id.opIn_r                    },
+        { "opStar",                    &Id.opStar                    },
+        { "opDot",                     &Id.opDot                     },
+        { "opDispatch",                &Id.opDispatch                },
+        { "opDollar",                  &Id.opDollar                  },
+        { "opUnary",                   &Id.opUnary                   },
+        { "opIndexUnary",              &Id.opIndexUnary              },
+        { "opSliceUnary",              &Id.opSliceUnary              },
+        { "opBinary",                  &Id.opBinary                  },
+        { "opBinaryRight",             &Id.opBinaryRight             },
+        { "opOpAssign",                &Id.opOpAssign                },
+        { "opIndexOpAssign",           &Id.opIndexOpAssign           },
+        { "opSliceOpAssign",           &Id.opSliceOpAssign           },
+        { "opPow",                     &Id.pow                       },
+        { "opPow_r",                   &Id.pow_r                     },
+        { "opPowAssign",               &Id.powass                    },
+        { "new",                       &Id.classNew                  },
+        { "delete",                    &Id.classDelete               },
+        { "opApply",                   &Id.apply                     },
+        { "opApplyReverse",            &Id.applyReverse              },
+        { "empty",                     &Id.Fempty                    },
+        { "front",                     &Id.Ffront                    },
+        { "back",                      &Id.Fback                     },
+        { "popFront",                  &Id.FpopFront                 },
+        { "popBack",                   &Id.FpopBack                  },
+        { "_adDupT",                   &Id.adDup                     },
+        { "_adReverse",                &Id.adReverse                 },
+        { "_aaLen",                    &Id.aaLen                     },
+        { "_aaKeys",                   &Id.aaKeys                    },
+        { "_aaValues",                 &Id.aaValues                  },
+        { "_aaRehash",                 &Id.aaRehash                  },
+        { "_d_monitorenter",           &Id.monitorenter              },
+        { "_d_monitorexit",            &Id.monitorexit               },
+        { "_d_criticalenter",          &Id.criticalenter             },
+        { "_d_criticalexit",           &Id.criticalexit              },
+        { "_ArrayEq",                  &Id._ArrayEq                  },
+        { "GNU_asm",                   &Id.GNU_asm                   },
+        { "lib",                       &Id.lib                       },
+        { "msg",                       &Id.msg                       },
+        { "startaddress",              &Id.startaddress              },
+        { "toHash",                    &Id.tohash                    },
+        { "toString",                  &Id.tostring                  },
+        { "getMembers",                &Id.getmembers                },
+        { "alloca",                    &Id.__alloca                  },
+        { "main",                      &Id.main                      },
+        { "WinMain",                   &Id.WinMain                   },
+        { "DllMain",                   &Id.DllMain                   },
+        { "___tls_get_addr",           &Id.tls_get_addr              },
+        { "__va_argsave_t",            &Id.va_argsave_t              },
+        { "__va_argsave",              &Id.va_argsave                },
+        { "std",                       &Id.std                       },
+        { "core",                      &Id.core                      },
+        { "math",                      &Id.math                      },
+        { "sin",                       &Id.sin                       },
+        { "cos",                       &Id.cos                       },
+        { "tan",                       &Id.tan                       },
+        { "sqrt",                      &Id._sqrt                     },
+        { "pow",                       &Id._pow                      },
+        { "atan2",                     &Id.atan2                     },
+        { "rndtol",                    &Id.rndtol                    },
+        { "expm1",                     &Id.expm1                     },
+        { "exp2",                      &Id.exp2                      },
+        { "yl2x",                      &Id.yl2x                      },
+        { "yl2xp1",                    &Id.yl2xp1                    },
+        { "fabs",                      &Id.fabs                      },
+        { "bitop",                     &Id.bitop                     },
+        { "bsf",                       &Id.bsf                       },
+        { "bsr",                       &Id.bsr                       },
+        { "bswap",                     &Id.bswap                     },
+        { "isAbstractClass",           &Id.isAbstractClass           },
+        { "isArithmetic",              &Id.isArithmetic              },
+        { "isAssociativeArray",        &Id.isAssociativeArray        },
+        { "isFinalClass",              &Id.isFinalClass              },
+        { "isFloating",                &Id.isFloating                },
+        { "isIntegral",                &Id.isIntegral                },
+        { "isScalar",                  &Id.isScalar                  },
+        { "isStaticArray",             &Id.isStaticArray             },
+        { "isUnsigned",                &Id.isUnsigned                },
+        { "isVirtualFunction",         &Id.isVirtualFunction         },
+        { "isVirtualMethod",           &Id.isVirtualMethod           },
+        { "isAbstractFunction",        &Id.isAbstractFunction        },
+        { "isFinalFunction",           &Id.isFinalFunction           },
+        { "isStaticFunction",          &Id.isStaticFunction          },
+        { "isRef",                     &Id.isRef                     },
+        { "isOut",                     &Id.isOut                     },
+        { "isLazy",                    &Id.isLazy                    },
+        { "hasMember",                 &Id.hasMember                 },
+        { "identifier",                &Id.identifier                },
+        { "parent",                    &Id.parent                    },
+        { "getMember",                 &Id.getMember                 },
+        { "getOverloads",              &Id.getOverloads              },
+        { "getVirtualFunctions",       &Id.getVirtualFunctions       },
+        { "getVirtualMethods",         &Id.getVirtualMethods         },
+        { "classInstanceSize",         &Id.classInstanceSize         },
+        { "allMembers",                &Id.allMembers                },
+        { "derivedMembers",            &Id.derivedMembers            },
+        { "isSame",                    &Id.isSame                    },
+        { "compiles",                  &Id.compiles                  },
+        { "parameters",                &Id.parameters                },
+    ];
+
+    return idlist;
+}

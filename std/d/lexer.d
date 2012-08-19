@@ -39,6 +39,12 @@ static this()
         StringValue *sv = Lexer.stringtable.insert(k.name);
         sv.ptrvalue = cast(void *) new Identifier(sv.toString(), k.value);
     });
+
+
+    foreach_identifier((ref IdEntry i)
+    {
+        *i.id = Lexer.idPool(i.name);
+    });
 }
 
 struct Loc
