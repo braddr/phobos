@@ -24,7 +24,7 @@ private:
     @disable this();  // not constructible
 
     // This is more like a placement new c'tor
-    void alloc(const(char[]) s)
+    void init(const(char[]) s)
     {
         length_ = s.length;
         char* ptr = cast(char*)&lstring;
@@ -48,7 +48,7 @@ private:
     {
         //printf("StringEntry.alloc\n");
         StringEntry *se = cast(StringEntry *)GC.calloc(StringEntry.sizeof + s.length + 1);
-        se.value.alloc(s);
+        se.value.init(s);
         se.hash = calcHash(s);
         return se;
     }

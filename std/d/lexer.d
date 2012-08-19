@@ -304,10 +304,9 @@ struct Lexer
                                 break;
                         }
                     } while (*p == '\\');
-                    t.len = cast(uint)stringbuffer.offset;
+                    size_t len = stringbuffer.offset;
                     stringbuffer.write(cast(byte)0);
-                    t.ustring = cast(byte*)GC.malloc(stringbuffer.offset);
-                    memcpy(t.ustring, cast(char*)stringbuffer.data.ptr, stringbuffer.offset);
+                    t.ustring = (cast(char[])stringbuffer.data).idup[0 .. len];
                     t.postfix = 0;
                     t.value = TOK.TOKstring;
                     if (!GLOBAL_USE_DEPRECATED)
@@ -359,43 +358,47 @@ struct Lexer
                     anyToken = 1;
                     if (*t.ptr == '_')     // if special identifier token
                     {
-                        static char date[11+1];
-                        static char time[8+1];
-                        static char timestamp[24+1];
+                        static char date_buf[11+1];
+                        static char time_buf[8+1];
+                        static char timestamp_buf[24+1];
+                        static string date, time, timestamp;
 
-                        if (!date[0])       // lazy evaluation
+                        if (!date_buf[0])       // lazy evaluation
                         {
                             core.stdc.time.time_t t;
                             core.stdc.time.time(&t);
                             char* p = ctime(&t);
                             assert(p);
-                            sprintf(date, "%.6s %.4s", p + 4, p + 20);
-                            sprintf(time, "%.8s", p + 11);
-                            sprintf(timestamp, "%.24s", p);
+                            size_t len;
+                            len = sprintf(date_buf.ptr, "%.6s %.4s", p + 4, p + 20);
+                            date = cast(string)date_buf[0 .. len].idup;
+                            len = sprintf(time_buf.ptr, "%.8s", p + 11);
+                            time = cast(string)time_buf[0 .. len].idup;
+                            len = sprintf(timestamp_buf.ptr, "%.24s", p);
+                            timestamp = cast(string)timestamp_buf[0 .. len].idup;
                         }
 
                         if (id == Id.DATE)
                         {
-                            t.ustring = cast(byte*)date;
+                            t.ustring = date;
                             goto Lstr;
                         }
                         else if (id == Id.TIME)
                         {
-                            t.ustring = cast(byte*)time;
+                            t.ustring = time;
                             goto Lstr;
                         }
                         else if (id == Id.VENDOR)
                         {
-                            t.ustring = cast(byte*)("Digital Mars D".ptr);
+                            t.ustring = "Digital Mars D";
                             goto Lstr;
                         }
                         else if (id == Id.TIMESTAMP)
                         {
-                            t.ustring = cast(byte*)timestamp;
+                            t.ustring = timestamp;
                          Lstr:
                             t.value = TOK.TOKstring;
                             t.postfix = 0;
-                            t.len = cast(uint)strlen(cast(char*)t.ustring);
                         }
                         else if (id == Id.VERSIONX)
                         {   uint major = 0;
@@ -1118,8 +1121,7 @@ struct Lexer
                 case 0:
                 case 0x1A:
                     error("unterminated string constant starting at %s", start.toString());
-                    t.ustring = cast(byte*)"".ptr;
-                    t.len = 0;
+                    t.ustring = "";
                     t.postfix = 0;
                     return TOK.TOKstring;
 
@@ -1127,10 +1129,9 @@ struct Lexer
                 case '`':
                     if (c == tc)
                     {
-                        t.len = cast(int)stringbuffer.offset;
+                        size_t len = stringbuffer.offset;
                         stringbuffer.write(cast(byte)0);
-                        t.ustring = cast(byte*)GC.malloc(stringbuffer.offset);
-                        memcpy(t.ustring, cast(char*)stringbuffer.data.ptr, stringbuffer.offset);
+                        t.ustring = (cast(char[])stringbuffer.data).idup[0 .. len];
                         stringPostfix(t);
                         return TOK.TOKstring;
                     }
@@ -1190,8 +1191,7 @@ struct Lexer
                 case 0:
                 case 0x1A:
                     error("unterminated string constant starting at %s", start.toString());
-                    t.ustring = cast(byte*)"".ptr;
-                    t.len = 0;
+                    t.ustring = "";
                     t.postfix = 0;
                     return TOK.TOKstring;
 
@@ -1200,10 +1200,9 @@ struct Lexer
                     {   error("odd number (%d) of hex characters in hex string", n);
                         stringbuffer.write(cast(byte)v);
                     }
-                    t.len = cast(int)stringbuffer.offset;
+                    size_t len = stringbuffer.offset;
                     stringbuffer.write(cast(byte)0);
-                    t.ustring = cast(byte*)GC.malloc(stringbuffer.offset);
-                    memcpy(t.ustring, cast(char*)stringbuffer.data.ptr, stringbuffer.offset);
+                    t.ustring = (cast(char[])stringbuffer.data).idup[0 .. len];
                     stringPostfix(t);
                     return TOK.TOKstring;
 
@@ -1384,17 +1383,15 @@ struct Lexer
             p++;
         else
             error("delimited string must end in %c\"", delimright);
-        t.len = cast(int)stringbuffer.offset;
+        size_t len = stringbuffer.offset;
         stringbuffer.write(cast(byte)0);
-        t.ustring = cast(byte*)GC.malloc(stringbuffer.offset);
-        memcpy(t.ustring, cast(char*)stringbuffer.data.ptr, stringbuffer.offset);
+        t.ustring = (cast(char[])stringbuffer.data).idup[0 .. len];
         stringPostfix(t);
         return TOK.TOKstring;
 
     Lerror:
         error("unterminated string constant starting at %s", start.toString());
-        t.ustring = cast(byte*)"".ptr;
-        t.len = 0;
+        t.ustring = "";
         t.postfix = 0;
         return TOK.TOKstring;
     }
@@ -1437,17 +1434,16 @@ struct Lexer
         }
 
     Ldone:
-        t.len = cast(int)(p - 1 - pstart);
-        t.ustring = cast(byte*)GC.malloc(t.len + 1);
-        memcpy(t.ustring, pstart, t.len);
-        t.ustring[t.len] = 0;
+        char[] duped = cast(char[])pstart[0 .. p - pstart].dup;
+        duped[$ - 1] = 0;
+        duped = duped[0 .. $-1];
+        t.ustring = cast(string)duped;
         stringPostfix(t);
         return TOK.TOKstring;
 
     Lerror:
         error("unterminated token string constant starting at %s", start.toString());
-        t.ustring = cast(byte*)"".ptr;
-        t.len = 0;
+        t.ustring = "";
         t.postfix = 0;
         return TOK.TOKstring;
     }
@@ -1495,10 +1491,9 @@ struct Lexer
                     break;
 
                 case '"':
-                    t.len = cast(int)stringbuffer.offset;
+                    size_t len = stringbuffer.offset;
                     stringbuffer.write(cast(byte)0);
-                    t.ustring = cast(byte*)GC.malloc(stringbuffer.offset);
-                    memcpy(t.ustring, cast(char*)stringbuffer.data.ptr, stringbuffer.offset);
+                    t.ustring = (cast(char[])stringbuffer.data).idup[0 .. len];
                     stringPostfix(t);
                     return TOK.TOKstring;
 
@@ -1506,8 +1501,7 @@ struct Lexer
                 case 0x1A:
                     p--;
                     error("unterminated string constant starting at %s", start.toString());
-                    t.ustring = cast(byte*)"".ptr;
-                    t.len = 0;
+                    t.ustring = "";
                     t.postfix = 0;
                     return TOK.TOKstring;
 
@@ -2275,9 +2269,9 @@ version(none) {
 
         /* Start of comment text skips over / * *, / + +, or / / /
          */
-        byte *q = t.ptr + 3;      // start of comment text
+        const(byte)* q = t.ptr + 3;      // start of comment text
 
-        byte *qend = p;
+        const(byte)* qend = p;
         if (ct == '*' || ct == '+')
             qend -= 2;
 
@@ -2466,10 +2460,10 @@ version(none) {
         while (last.next)
             last = last.next;
 
-        byte* start = token.ptr;
-        byte* stop = last.ptr;
+        const(byte)* start = token.ptr;
+        const(byte)* stop = last.ptr;
 
-        for (byte* p = start; p < stop; ++p)
+        for (const(byte)* p = start; p < stop; ++p)
         {
             switch (*p)
             {

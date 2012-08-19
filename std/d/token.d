@@ -150,7 +150,7 @@ struct Token
 {
     Token* next;
 
-    byte* ptr;         // pointer to first character of this token within buffer
+    const(byte)* ptr;         // pointer to first character of this token within buffer
     TOK value;
     byte* blockComment; // doc comment string prior to this token
     byte* lineComment;  // doc comment for previous token
@@ -166,8 +166,7 @@ struct Token
         real float80value;
 
         struct
-        {   byte* ustring;     // UTF8 string
-            int   len;
+        {   string ustring;    // UTF8 string
             byte  postfix;     // 'c', 'w', 'd'
         };
 
@@ -232,9 +231,9 @@ struct Token
                 OutBuffer buf = new OutBuffer();
                 scope(exit) delete buf;
 
-                char[] us = cast(char[])ustring[0 .. len];
+                string us = ustring;
                 buf.write('"');
-                for (size_t i = 0; i < len; )
+                for (size_t i = 0; i < ustring.length; )
                 {
                     int c = decode(us, i);
                     switch (c)
