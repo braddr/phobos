@@ -54,14 +54,14 @@ private:
     }
 }
 
-struct StringTable
+class StringTable
 {
 private:
     StringEntry **table;
     size_t tabledim; // total size of the table, for bucket mod
 
 public:
-    void init(size_t size = 37)
+    this(size_t size = 37)
     {
         table = cast(StringEntry **)GC.calloc(size * (StringEntry *).sizeof);
         tabledim = size;

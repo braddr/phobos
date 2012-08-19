@@ -30,21 +30,34 @@ enum GLOBAL_USE_DEPRECATED = false;
 static this()
 {
     Lexer.stringbuffer = new OutBuffer;
-    Lexer.stringtable.init(6151);
     init_charmap();
     init_tokens();
+}
 
-    foreach_keyword((ref const Keyword k)
+StringTable createAndPopulatedStringTable(size_t size = 6151)
+{
+    StringTable table = new StringTable(size);
+
+    foreach(ref const Keyword k; keywords())
     {
-        StringValue *sv = Lexer.stringtable.insert(k.name);
+        StringValue *sv = table.insert(k.name);
         sv.ptrvalue = cast(void *) new Identifier(sv.toString(), k.value);
-    });
+    }
 
-
-    foreach_identifier((ref IdEntry i)
+    foreach(ref IdEntry i; identifiers())
     {
-        *i.id = Lexer.idPool(i.name);
-    });
+        StringValue *sv = table.update(i.name);
+        Identifier *id = cast(Identifier *) sv.ptrvalue;
+        if (!id)
+        {
+            id = new Identifier(sv.toString(), TOK.TOKidentifier);
+            sv.ptrvalue = id;
+        }
+
+        *i.id = id;
+    }
+
+    return table;
 }
 
 struct Loc
@@ -70,10 +83,10 @@ struct Loc
 
 struct Lexer
 {
-    static StringTable stringtable;
     static OutBuffer stringbuffer;
     static Token *freelist = null;
 
+    StringTable stringtable;
     Loc loc;                    // for error messages
 
     byte *base;        // pointer to start of buffer
@@ -85,27 +98,24 @@ struct Lexer
     int anyToken;               // !=0 means seen at least one token
     int commentToken;           // !=0 means comments are TOKcomment's
 
-    this(string mod,
+    this(StringTable st, string mod,
         byte *base, uint begoffset, uint endoffset,
         int doDocComment, int commentToken)
     {
-        loc = Loc(mod, 1);
-
         //printf("Lexer::Lexer(%p,%d)\n",base,length);
         //printf("lexer.mod = %p, %p\n", mod, this.loc.mod);
-        memset(&token, 0, token.sizeof);
+        this.stringtable = st;
+        this.loc = Loc(mod, 1);
         this.base = base;
         this.end  = base + endoffset;
-        p = base + begoffset;
+        this.p = base + begoffset;
         this.mod = mod;
         this.doDocComment = doDocComment;
         this.anyToken = 0;
         this.commentToken = commentToken;
-        //initKeywords();
+        memset(&token, 0, token.sizeof);
 
-        /* If first line starts with '#!', ignore the line
-         */
-
+        // If first line starts with '#!', ignore the line
         if (p[0] == '#' && p[1] =='!')
         {
             p += 2;
@@ -140,28 +150,6 @@ struct Lexer
             }
             loc.linnum = 2;
         }
-    }
-
-    static void initKeywords();
-
-    /********************************************
-     * Create an identifier in the string table.
-     */
-    static Identifier* idPool(const char *s)
-    {
-        return idPool(cast(string)s[0 .. strlen(s)]);
-    }
-
-    static Identifier* idPool(string s)
-    {
-        StringValue *sv = stringtable.update(s);
-        Identifier *id = cast(Identifier *) sv.ptrvalue;
-        if (!id)
-        {
-            id = new Identifier(sv.toString(), TOK.TOKidentifier);
-            sv.ptrvalue = id;
-        }
-        return id;
     }
 
     TOK nextToken()

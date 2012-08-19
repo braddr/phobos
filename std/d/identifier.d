@@ -300,12 +300,6 @@ struct Id
     static Identifier *parameters;
 }
 
-void foreach_identifier(void delegate(ref IdEntry i) dg)
-{
-    foreach (ref i; identifiers())
-        dg(i);
-}
-
 struct IdEntry
 {
     string       name;

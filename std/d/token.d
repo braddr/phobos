@@ -329,10 +329,10 @@ struct Token
 
 void init_tokens()
 {
-    foreach_keyword((ref const Keyword k)
+    foreach(ref const Keyword k; keywords())
     {
         Token.tochars[k.value] = k.name;
-    });
+    }
 
     Token.tochars[TOK.TOKeof]              = "EOF";
     Token.tochars[TOK.TOKlcurly]           = "{";

@@ -12,12 +12,6 @@ bool isKeyword(const ref Token t)
     return false;
 }
 
-void foreach_keyword(void delegate(ref const Keyword k) dg)
-{
-    foreach (ref k; keywords())
-        dg(k);
-}
-
 struct Keyword
 {
     string name;
