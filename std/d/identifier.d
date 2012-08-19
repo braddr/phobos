@@ -1,8 +1,5 @@
 module std.d.identifier;
 
-import core.stdc.stdio : stdout, fprintf;
-import core.stdc.string : memcmp, strlen;
-
 import std.d.stringtable;
 import std.d.lexer;
 
@@ -19,11 +16,6 @@ struct Identifier
         //printf("Identifier('%.*s', %d)\n", s.length, s.ptr, v);
         str = s;
         value = v;
-    }
-
-    this(immutable(char) *s, int v)
-    {
-        this(s[0 .. strlen(s)], v);
     }
 
     bool opEquals(Identifier *o)
