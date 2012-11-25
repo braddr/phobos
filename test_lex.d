@@ -23,20 +23,20 @@ void lex(StringTable table, string filename)
         if (l.token.value == TOK.TOKsemicolon) writeln();
     }
     while (l.token.value != TOK.TOKeof);
+    writeln();
+    writeln();
 }
 
 void main()
 {
     StringTable table = createAndPopulatedStringTable();
 
-    /+
     auto dFiles = filter!`endsWith(a.name,".d")`(dirEntries("std", SpanMode.depth));
     foreach(d; dFiles)
     {
         lex(table, d.name);
     }
-    +/
 
     //foreach (i; 1 .. 10)
-        lex(table, "std/xml.d");
+    //    lex(table, "std/xml.d");
 }

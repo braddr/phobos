@@ -353,9 +353,9 @@ struct Lexer
 
                         if (!date_buf[0])       // lazy evaluation
                         {
-                            core.stdc.time.time_t t;
-                            core.stdc.time.time(&t);
-                            char* p = ctime(&t);
+                            core.stdc.time.time_t tt;
+                            core.stdc.time.time(&tt);
+                            char* p = ctime(&tt);
                             assert(p);
                             size_t len;
                             len = sprintf(date_buf.ptr, "%.6s %.4s", p + 4, p + 20);
@@ -1238,6 +1238,8 @@ struct Lexer
      */
     TOK delimitedStringConstant(Token *t)
     {
+        import core.stdc.stdio : printf;
+
         uint c;
         Loc start = loc;
         uint delimleft = 0;
@@ -1248,12 +1250,13 @@ struct Lexer
         uint blankrol = 0;
         uint startline = 0;
 
+        printf("delimitedStringConstant\n");
         p++;
         stringbuffer.reset();
         while (1)
         {
             c = *p++;
-            //printf("c = '%c'\n", c);
+            printf("p = %p, c = '%c'\n", p, c);
             switch (c)
             {
                 case '\n':
@@ -1307,15 +1310,15 @@ struct Lexer
                     delimright = '>';
                 else if (isalpha(c) || c == '_' || (c >= 0x80 && isAlpha(c)))
                 {   // Start of identifier; must be a heredoc
-                    Token t;
+                    Token t2;
                     p--;
-                    scan(&t);               // read in heredoc identifier
-                    if (t.value != TOK.TOKidentifier)
-                    {   error("identifier expected for heredoc, not %s", t.toString());
+                    scan(&t2);               // read in heredoc identifier
+                    if (t2.value != TOK.TOKidentifier)
+                    {   error("identifier expected for heredoc, not %s", t2.toString());
                         delimright = c;
                     }
                     else
-                    {   hereid = t.ident;
+                    {   hereid = t2.ident;
                         //printf("hereid = '%.*s'\n", hereid.toString().length, hereid.toString().ptr);
                         blankrol = 1;
                     }
@@ -1348,11 +1351,11 @@ struct Lexer
                 else if (c == delimright)
                     goto Ldone;
                 if (startline && isalpha(c) && hereid)
-                {   Token t;
+                {   Token t2;
                     byte *psave = p;
                     p--;
-                    scan(&t);               // read in possible heredoc identifier
-                    if (t.value == TOK.TOKidentifier && hereid == t.ident)
+                    scan(&t2);               // read in possible heredoc identifier
+                    if (t2.value == TOK.TOKidentifier && hereid == t2.ident)
                     {   /* should check that rest of line is blank
                          */
                         goto Ldone;
@@ -1936,20 +1939,17 @@ struct Lexer
     }
     body
     {
-        int dblstate;
-        uint c;
-        char hex;                   // is this a hexadecimal-floating-constant?
         TOK result;
 
         //printf("Lexer::inreal()\n");
         stringbuffer.reset();
-        dblstate = 0;
-        hex = 0;
+        int dblstate = 0;
+        char hex = 0; // is this a hexadecimal-floating-constant?
     Lnext:
         while (1)
         {
             // Get next char from input
-            c = *p++;
+            uint c = *p++;
             //printf("dblstate = %d, c = '%c'\n", dblstate, c);
             while (1)
             {
@@ -2013,6 +2013,9 @@ struct Lexer
 
                     case 8:                 // past end of exponent digits
                         goto done;
+
+                    default:
+                        assert(0);
                 }
                 break;
             }
@@ -2076,6 +2079,8 @@ struct Lexer
                 case TOK.TOKfloat80v:
                     result = TOK.TOKimaginary80v;
                     break;
+                default:
+                    assert(0);
             }
         }
         if (errno == ERANGE)
@@ -2231,7 +2236,7 @@ version(none) {
 
         size_t idx = 0;
         try
-            dchar u = decode(cast(char[])s[0 .. len], idx); //utf_decodeChar(s, len, &idx, &u);
+            u = decode(cast(char[])s[0 .. len], idx); //utf_decodeChar(s, len, &idx, &u);
         catch(UTFException e)
             error("%s", e.toString());
         finally

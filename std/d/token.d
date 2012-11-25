@@ -183,46 +183,46 @@ struct Token
         switch (value)
         {
             case TOK.TOKint32v:
-                num = sprintf(buffer, "%d", int32value);
+                num = sprintf(buffer.ptr, "%d", int32value);
                 break;
 
             case TOK.TOKuns32v:
             case TOK.TOKcharv:
             case TOK.TOKwcharv:
             case TOK.TOKdcharv:
-                num = sprintf(buffer, "%uU", uns32value);
+                num = sprintf(buffer.ptr, "%uU", uns32value);
                 break;
 
             case TOK.TOKint64v:
-                num = sprintf(buffer, "%lldL", int64value);
+                num = sprintf(buffer.ptr, "%lldL", int64value);
                 break;
 
             case TOK.TOKuns64v:
-                num = sprintf(buffer, "%lluUL", uns64value);
+                num = sprintf(buffer.ptr, "%lluUL", uns64value);
                 break;
 
             case TOK.TOKfloat32v:
-                num = sprintf(buffer, "%gf", float80value);
+                num = sprintf(buffer.ptr, "%gf", float80value);
                 break;
 
             case TOK.TOKfloat64v:
-                num = sprintf(buffer, "%g", float80value);
+                num = sprintf(buffer.ptr, "%g", float80value);
                 break;
 
             case TOK.TOKfloat80v:
-                num = sprintf(buffer, "%gL", float80value);
+                num = sprintf(buffer.ptr, "%gL", float80value);
                 break;
 
             case TOK.TOKimaginary32v:
-                num = sprintf(buffer, "%gfi", float80value);
+                num = sprintf(buffer.ptr, "%gfi", float80value);
                 break;
 
             case TOK.TOKimaginary64v:
-                num = sprintf(buffer, "%gi", float80value);
+                num = sprintf(buffer.ptr, "%gi", float80value);
                 break;
 
             case TOK.TOKimaginary80v:
-                num = sprintf(buffer, "%gLi", float80value);
+                num = sprintf(buffer.ptr, "%gLi", float80value);
                 break;
 
             case TOK.TOKstring:
@@ -245,10 +245,11 @@ struct Token
                             buf.write('\\');
                             goto default;
                         default:
-                            if (isprint(c))
-                                buf.write(cast(byte)c);
-                            else if (c <= 0x7F)
-                                buf.printf("\\x%02x", c);
+                            if (c <= 0x7F)
+                                if (isprint(c))
+                                    buf.write(cast(byte)c);
+                                else
+                                    buf.printf("\\x%02x", c);
                             else if (c <= 0xFFFF)
                                 buf.printf("\\u%04x", c);
                             else
@@ -306,7 +307,7 @@ struct Token
         {
             char buffer[3 + 3 * value.sizeof + 1];
 
-            size_t num = sprintf(buffer, "TOK%d", value);
+            size_t num = sprintf(buffer.ptr, "TOK%d", value);
             p = buffer[0 .. num].idup;
         }
         return p;
